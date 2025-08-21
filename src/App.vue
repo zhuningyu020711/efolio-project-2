@@ -1,7 +1,12 @@
 <template>
-  <JSON />
+  <div>
+    <!-- 上周的组件先注释 -->
+    <!-- <AuthorsList /> <FamousWorks /> ... -->
+
+    <Form />
+  </div>
 </template>
 
 <script setup>
-import JSON from './components/JSON.vue'
+import Form from './components/Form.vue'
 </script>
