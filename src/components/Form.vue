@@ -1,75 +1,103 @@
 <template>
     <div class="container mt-5">
       <div class="row">
-        <!-- 让内容在不同设备都居中：xs 满宽、sm 变窄、md 8列、lg 6列 -->
         <div class="col-12 col-sm-10 col-md-8 col-lg-6 mx-auto">
           <h1 class="text-center mb-4">User Information Form / Credentials</h1>
   
-          <!-- 提交时阻止原生跳转，调用 submitForm -->
-          <form @submit.prevent="submitForm" class="needs-validation" novalidate>
+          <form @submit.prevent="submitForm" novalidate>
+            <!-- Username -->
             <div class="mb-3">
               <label for="username" class="form-label">Username</label>
               <input
-                type="text"
                 id="username"
                 class="form-control"
+                :class="{ 'is-invalid': !!errors.username }"
+                type="text"
                 v-model="formData.username"
-                required
-              >
+                @blur="() => validateName(true)"
+                @input="() => validateName(false)"
+                placeholder="Enter at least 3 characters"
+                autocomplete="username"
+              />
+              <div v-if="errors.username" class="invalid-feedback">
+                {{ errors.username }}
+              </div>
             </div>
   
+            <!-- Password -->
             <div class="mb-3">
               <label for="password" class="form-label">Password</label>
               <input
-                type="password"
                 id="password"
                 class="form-control"
+                :class="{ 'is-invalid': !!errors.password }"
+                type="password"
                 v-model="formData.password"
-                required
-              >
+                @blur="() => validatePassword(true)"
+                @input="() => validatePassword(false)"
+                placeholder="Min 8 chars incl. upper/lower/number/special"
+                autocomplete="new-password"
+              />
+              <div v-if="errors.password" class="invalid-feedback">
+                {{ errors.password }}
+              </div>
             </div>
   
+            <!-- Australian Resident -->
             <div class="form-check mb-3">
               <input
+                id="isAustralian"
                 class="form-check-input"
                 type="checkbox"
-                id="isAustralian"
                 v-model="formData.isAustralian"
-              >
+              />
               <label class="form-check-label" for="isAustralian">
                 Australian Resident?
               </label>
             </div>
   
+            <!-- Gender -->
             <div class="mb-3">
               <label for="gender" class="form-label">Gender</label>
-              <select id="gender" class="form-select" v-model="formData.gender" required>
+              <select
+                id="gender"
+                class="form-select"
+                :class="{ 'is-invalid': !!errors.gender }"
+                v-model="formData.gender"
+              >
                 <option disabled value="">Select…</option>
                 <option value="female">Female</option>
                 <option value="male">Male</option>
                 <option value="other">Other</option>
               </select>
+              <div v-if="errors.gender" class="invalid-feedback">
+                {{ errors.gender }}
+              </div>
             </div>
   
+            <!-- Reason -->
             <div class="mb-4">
               <label for="reason" class="form-label">Reason For Joining</label>
               <textarea
                 id="reason"
                 class="form-control"
+                :class="{ 'is-invalid': !!errors.reason }"
                 rows="3"
                 v-model="formData.reason"
-                required
+                placeholder="Tell us a bit more (≥ 10 characters)"
               ></textarea>
+              <div v-if="errors.reason" class="invalid-feedback">
+                {{ errors.reason }}
+              </div>
             </div>
   
-            <!-- 小屏堆叠，大屏横排（纯 Bootstrap 断点工具类） -->
             <div class="d-grid gap-2 d-md-flex">
               <button type="submit" class="btn btn-primary me-md-2">Submit</button>
               <button type="button" class="btn btn-secondary" @click="clearForm">Clear</button>
             </div>
           </form>
   
-          <!-- 提交后显示卡片 -->
+          <!-- 提交记录（卡片版） -->
           <div class="row mt-5" v-if="submittedCards.length">
             <div class="d-flex flex-wrap justify-content-start">
               <div
@@ -110,7 +138,62 @@
   
   const submittedCards = ref([])
   
+  const errors = ref({
+    username: null,
+    password: null,
+    resident: null,
+    gender: null,
+    reason: null
+  })
+  
+  const validateName = (blur) => {
+    const v = formData.value.username?.trim() || ''
+    if (v.length < 3) {
+      if (blur) errors.value.username = 'Name must be at least 3 characters'
+    } else {
+      errors.value.username = null
+    }
+  }
+  
+  const validatePassword = (blur) => {
+    const p = formData.value.password || ''
+    const minLength = 8
+    const hasUppercase = /[A-Z]/.test(p)
+    const hasLowercase = /[a-z]/.test(p)
+    const hasNumber = /\d/.test(p)
+    const hasSpecialChar = /[!@#$%^&*(),.?":{}|<>]/.test(p)
+  
+    if (p.length < minLength || !hasUppercase || !hasLowercase || !hasNumber || !hasSpecialChar) {
+      if (blur) {
+        errors.value.password =
+          'Password ≥8 chars & include upper, lower, number, special char'
+      }
+    } else {
+      errors.value.password = null
+    }
+  }
+  
+  const validateOthers = (onSubmit = false) => {
+    if (!formData.value.gender) {
+      if (onSubmit) errors.value.gender = 'Please select a gender'
+    } else errors.value.gender = null
+  
+    const r = formData.value.reason?.trim() || ''
+    if (r.length < 10) {
+      if (onSubmit) errors.value.reason = 'Reason must be at least 10 characters'
+    } else errors.value.reason = null
+  
+    errors.value.resident = null
+  }
+  
   const submitForm = () => {
+    validateName(true)
+    validatePassword(true)
+    validateOthers(true)
+  
+    const hasError = Object.values(errors.value).some(Boolean)
+    if (hasError) return
+  
     submittedCards.value.push({ ...formData.value })
     clearForm()
   }
@@ -122,6 +205,13 @@
       isAustralian: false,
       reason: '',
       gender: ''
+    }
+    errors.value = {
+      username: null,
+      password: null,
+      resident: null,
+      gender: null,
+      reason: null
     }
   }
   </script>
@@ -138,8 +228,8 @@
     padding: 10px;
     border-radius: 10px 10px 0 0;
   }
-  .list-group-item {
-    padding: 10px;
-  }
+  .list-group-item { padding: 10px; }
+
+
   </style>
   
