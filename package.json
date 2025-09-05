@@ -9,10 +9,11 @@
   },
   "dependencies": {
     "@primevue/themes": "^4.3.7",
-    "bootstrap": "^5.3.7",
+    "bootstrap": "^5.3.8",
     "primeicons": "^7.0.0",
     "primevue": "^4.3.7",
-    "vue": "^3.2.13"
+    "vue": "^3.2.13",
+    "vue-router": "^4.5.1"
   },
   "devDependencies": {
     "@vitejs/plugin-vue": "^6.0.1",
